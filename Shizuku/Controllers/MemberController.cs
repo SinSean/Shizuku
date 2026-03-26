@@ -16,7 +16,17 @@ namespace Shizuku.Controllers
 
             DbShizukuDemoContext db = new DbShizukuDemoContext();
 
-            var query = db.TMembers;
+            IQueryable<TMember> query = db.TMembers.Where(p => p.FIsActive == true);
+
+            if (!string.IsNullOrEmpty(vm.txtKeyword))
+            {
+                string k = vm.txtKeyword;
+                // 搜尋：姓名、Email、電話 或 會員編號 (模糊比對)
+                query = query.Where(p => p.FName.Contains(k)
+                                      || p.FEmail.Contains(k)
+                                      || p.FPhone.Contains(k)
+                                      || p.FMemberId.Contains(k));
+            }
 
             List<CMemberWrap> datas = new List<CMemberWrap>();
             foreach (var p in query)
@@ -29,9 +39,20 @@ namespace Shizuku.Controllers
         public IActionResult Block_List(CKeywordViewModel vm)
         {
             DbShizukuDemoContext db = new DbShizukuDemoContext();
-            IEnumerable<TMember> datas = null;
-            datas = from p in db.TMembers
-                    select p;
+            IQueryable<TMember> query = db.TMembers.Where(p => p.FIsActive == false);
+            if (!string.IsNullOrEmpty(vm.txtKeyword))
+            {
+                string k = vm.txtKeyword;
+                query = query.Where(p => p.FName.Contains(k)
+                                      || p.FEmail.Contains(k)
+                                      || p.FPhone.Contains(k)
+                                      || p.FMemberId.Contains(k));
+            }
+            List<CMemberWrap> datas = new List<CMemberWrap>();
+            foreach (var p in query)
+            {
+                datas.Add(new CMemberWrap { member = p });
+            }
             return View(datas);
         }
         public IActionResult Delete(int? id)
